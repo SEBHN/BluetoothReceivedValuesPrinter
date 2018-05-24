@@ -43,18 +43,8 @@ namespace BluetoothTest
             }
 
             reader.Connect();
-            //chart1.Series.Clear();
-            //var series = new Series
-            //{
-            //    Name = "Series1",
-            //    Color = Color.Green,
-            //    IsVisibleInLegend = false,
-            //    IsXValueIndexed = true,
-            //    ChartType = SeriesChartType.Line
-            //};
-
-            //this.chart1.Series.Add(series);
-            //  FillChart();
+            Thread thread = new Thread(new ThreadStart(reader.Read));
+            thread.Start();
         }
 
         delegate void FillChartCallback(double x, double y, double z);
@@ -80,48 +70,30 @@ namespace BluetoothTest
             for (int i = 0; i < 3; i++)
             {
                 var serie = this.chart1.Series[i];
-                double? oldValue = null;
-                for (int v = 0; v < 10; v++)
+                switch (i)
                 {
-                    double? currentValue = null;
-                    switch (i)
-                    {
-                        case 0:
-                            currentValue = x;
-                            break;
-                        case 1:
-                            currentValue = y;
-                            break;
-                        case 2:
-                            currentValue = z;
-                            break;
-                        default:
-                            currentValue = null;
-                            break;
-                    }
-
-                    if (currentValue != oldValue)
-                    {
-                        serie.Points.AddXY(v, currentValue);
-                    }
-                    oldValue = currentValue;
+                    case 0:
+                        serie.Points.Add(x);
+                        break;
+                    case 1:
+                        serie.Points.Add(y);
+                        break;
+                    case 2:
+                        serie.Points.Add(z);
+                        break;
+                    default:
+                        break;
                 }
             }
             chart1.Invalidate();
-
         }
 
-        private void btn_read_Click(object sender, EventArgs e)
+        private void btn_clear_Click(object sender, EventArgs e)
         {
-            Thread thread = new Thread(new ThreadStart(reader.Read));
-            thread.Start();
-
-        
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-          
+            foreach (var serie in chart1.Series)
+            {
+                serie.Points.Clear();
+            }
         }
     }
 }
