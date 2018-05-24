@@ -15,72 +15,42 @@ namespace BluetoothTest
 {
     class Program
     {
+        private static string DEVICEADDRESS = "D88039FBC399";
+
         static void Main(string[] args)
         {
+            BluetoothDeviceInfo device = new BluetoothDeviceInfo(BluetoothAddress.Parse(DEVICEADDRESS));
+            Console.WriteLine("device: " + device.DeviceName + "(" + device.DeviceAddress + ")");
 
-            BluetoothClient bc = new BluetoothClient();
-          //  Console.WriteLine("Discovering devices");
-          //  BluetoothDeviceInfo[] devices = bc.DiscoverDevices(8);
-            var address = BluetoothAddress.Parse("D88039FBC399");
-            BluetoothDeviceInfo lastDevice = new BluetoothDeviceInfo(address);// devices[devices.Length -1];
-            Console.WriteLine("lastDevice: " + lastDevice.DeviceName + "(" + lastDevice.DeviceAddress + ")");
-            var deviceAddress = lastDevice.DeviceAddress;
-
-
-            //try
-            //{
-            //    Console.WriteLine("Pairing " + deviceAddress);
-            //    bool paired = BluetoothSecurity.PairRequest(deviceAddress, null);
-            //    if (!paired)
-            //    {
-            //        Console.WriteLine("Pairing failed");
-            //    }
-            //    else
-            //    {
-            //        Console.WriteLine("Paired" + deviceAddress);
-            //    }
-            //}
-            //catch (Exception e)
-            //{
-
-            //    throw e;
-            //}
-
-            var serviceRecords = lastDevice.GetServiceRecords(BluetoothService.SerialPort);
-            foreach (var record in serviceRecords)
-            {
-                var portInteger = ServiceRecordHelper.GetRfcommChannelNumber(record);
-                var curSvcName = record.GetPrimaryMultiLanguageStringAttributeById(UniversalAttributeId.ServiceName);
-                Console.WriteLine("Servicename" + curSvcName + " port " + portInteger);
-            }
-            var guid = BluetoothService.SerialPort;
-            var anotherGuid = new Guid("0000110100001000800000805f9b34fb");
-
-
-            BluetoothEndPoint endPoint = new BluetoothEndPoint(deviceAddress, BluetoothService.SerialPort, 6);
-            bc.Connect(endPoint);
+            BluetoothEndPoint endPoint = new BluetoothEndPoint(device.DeviceAddress, BluetoothService.SerialPort, 6);
+            BluetoothClient bluetoothClient = new BluetoothClient();
+            bluetoothClient.Connect(endPoint);
             
 
-            Console.WriteLine("Is connected? " + bc.Connected);
+            Console.WriteLine("Is connected? " + bluetoothClient.Connected);
+            if (!bluetoothClient.Connected)
+            {
+                Console.WriteLine("connection failed");
+            }
             NetworkStream btStream = null;
             try
             {
                 byte[] buffer = new byte[2048]; // read in chunks of 2KB
-                btStream = bc.GetStream();
+                btStream = bluetoothClient.GetStream();
                 int bytesRead;
                 Console.WriteLine("Starting to read data");
                 
                 while ((bytesRead = btStream.Read(buffer, 0, buffer.Length)) > 0)
                 {
-                    var receivedString = System.Text.Encoding.Default.GetString(buffer);
-                    var newLineIndex = receivedString.IndexOf("\n");
+                    var receivedString = Encoding.Default.GetString(buffer);
+                    var newLineIndex = receivedString.IndexOf("\n"); // received string is x:12 y:12, z:0 \n\0\0\0....
                     var receivedWithoutLineBreak = receivedString.Substring(0, newLineIndex - 1);
                     Console.WriteLine(receivedWithoutLineBreak);
                 }
+                Console.WriteLine("Connection closed? No data received from bluetooth device");
             }
             catch (Exception e)
             {
-
                 throw e;
             }
             finally
@@ -89,12 +59,8 @@ namespace BluetoothTest
                 {
                     btStream.Close();
                 }
+                bluetoothClient.Dispose();
             }
-
-            bc.Dispose();
-
-
-            Console.ReadLine();
         }
     }
 }
