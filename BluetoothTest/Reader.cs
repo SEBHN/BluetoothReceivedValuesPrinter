@@ -16,21 +16,36 @@ namespace BluetoothTest
     class Reader
     {
         private static string DEVICEADDRESS = "D88039FBC399";
+        private BluetoothClient bluetoothClient;
+        private double x;
+        private double y;
+        private double z;
+        private MainForm form;
 
-        static void read()
+        public Reader(MainForm form)
+        {
+            bluetoothClient = new BluetoothClient();
+            this.form = form;
+        }
+
+        public void Connect()
         {
             BluetoothDeviceInfo device = new BluetoothDeviceInfo(BluetoothAddress.Parse(DEVICEADDRESS));
             Console.WriteLine("device: " + device.DeviceName + "(" + device.DeviceAddress + ")");
 
             BluetoothEndPoint endPoint = new BluetoothEndPoint(device.DeviceAddress, BluetoothService.SerialPort, 6);
-            BluetoothClient bluetoothClient = new BluetoothClient();
             bluetoothClient.Connect(endPoint);
-            
+
 
             Console.WriteLine("Is connected? " + bluetoothClient.Connected);
+
+        }
+
+        public void Read() {
             if (!bluetoothClient.Connected)
             {
                 Console.WriteLine("connection failed");
+                return;
             }
             NetworkStream btStream = null;
             try
@@ -45,7 +60,9 @@ namespace BluetoothTest
                     var receivedString = Encoding.Default.GetString(buffer);
                     var newLineIndex = receivedString.IndexOf("\n"); // received string is x:12 y:12, z:0 \n\0\0\0....
                     var receivedWithoutLineBreak = receivedString.Substring(0, newLineIndex - 1);
-                    Console.WriteLine(receivedWithoutLineBreak);
+                    analyzeLine(receivedWithoutLineBreak);
+                    form.FillChart(x, y, z);
+                    Console.WriteLine("X: " + x + "Y:" + y + "Z:" + z );
                 }
                 Console.WriteLine("Connection closed? No data received from bluetooth device");
             }
@@ -60,6 +77,34 @@ namespace BluetoothTest
                     btStream.Close();
                 }
                 bluetoothClient.Dispose();
+            }
+        }
+
+        private void analyzeLine(string receivedWithoutLineBreak)
+        {
+            var values = receivedWithoutLineBreak.Split(' ');
+            for (int i = 0; i < values.Length; i++)
+            {
+                var numericValue = values[i].Substring(2);
+                var trimmedValue = numericValue.Trim();
+                var isNumeric = double.TryParse(trimmedValue, out double readNumber);
+                if (isNumeric)
+                {
+                    switch (i)
+                    {
+                        case 0:
+                            x = readNumber;
+                            break;
+                        case 1:
+                            y = readNumber;
+                            break;
+                        case 2:
+                            z = readNumber;
+                            break;
+                        default:
+                            throw new Exception("Shouldnt be more than 3 axes");
+                    }
+                }
             }
         }
     }
