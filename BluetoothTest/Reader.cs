@@ -13,11 +13,11 @@ using System.Threading.Tasks;
 
 namespace BluetoothTest
 {
-    class Program
+    class Reader
     {
         private static string DEVICEADDRESS = "D88039FBC399";
 
-        static void Main(string[] args)
+        static void read()
         {
             BluetoothDeviceInfo device = new BluetoothDeviceInfo(BluetoothAddress.Parse(DEVICEADDRESS));
             Console.WriteLine("device: " + device.DeviceName + "(" + device.DeviceAddress + ")");
