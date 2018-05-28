@@ -31,6 +31,11 @@ namespace BluetoothTest
 
         private void MainForm_Load(object sender, EventArgs e)
         {
+            foreach (var charttype in Enum.GetValues(typeof(SeriesChartType)))
+            {
+                cmbChartType.Items.Add(charttype);
+            }
+            cmbChartType.SelectedIndex = cmbChartType.FindString(SeriesChartType.StepLine.ToString());
 
             var s = "x:41.45 y:19.40 z:-14.6";
             var values = s.Split(' ');
@@ -93,6 +98,17 @@ namespace BluetoothTest
             foreach (var serie in chart1.Series)
             {
                 serie.Points.Clear();
+            }
+        }
+
+        private void cmbChartType_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ComboBox box = (ComboBox)sender;
+            var item = (SeriesChartType)box.SelectedItem;
+
+            foreach (var serie in chart1.Series)
+            {
+                serie.ChartType = item;
             }
         }
     }
