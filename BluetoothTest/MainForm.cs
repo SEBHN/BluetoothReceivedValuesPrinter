@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BluetoothReaderLibrary;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -20,7 +21,7 @@ namespace BluetoothTest
         public MainForm()
         {
             InitializeComponent();
-            reader = new Reader(this);
+            reader = new Reader();
         }
 
         private double f(int i)
@@ -48,8 +49,14 @@ namespace BluetoothTest
             }
 
             reader.Connect();
+            reader.NewDataAvailable += Reader_NewDataAvailable;
             Thread thread = new Thread(new ThreadStart(reader.Read));
             thread.Start();
+        }
+
+        private void Reader_NewDataAvailable(object sender, AccelerationEventArgs e)
+        {
+            FillChart(e.x, e.y, e.z);
         }
 
         delegate void FillChartCallback(double x, double y, double z);
