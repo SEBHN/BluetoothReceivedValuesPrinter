@@ -38,16 +38,6 @@ namespace BluetoothTest
             }
             cmbChartType.SelectedIndex = cmbChartType.FindString(SeriesChartType.StepLine.ToString());
 
-            var s = "x:41.45 y:19.40 z:-14.6";
-            var values = s.Split(' ');
-            foreach (var value in values)
-            {
-                var numericValue = value.Substring(2);
-                var trimmedValue = numericValue.Trim();
-                var isNumeric = Decimal.TryParse(trimmedValue, out decimal n);
-                Console.WriteLine(n);
-            }
-
             reader.Connect();
             reader.NewDataAvailable += Reader_NewDataAvailable;
             Thread thread = new Thread(new ThreadStart(reader.Read));
